@@ -1,64 +1,70 @@
-import { useEffect, useState } from "react";
-import { ListItem, useGetListData } from "../api/getListData";
+import { useState } from "react";
+import { useGetListData, useDeleteCard } from "../api/getListData";
 import { Card } from "./Card";
 import { Spinner } from "./Spinner";
+import { useStore } from "../store";
+import { ToggleButton } from "./ToggleButton";
+import { useFetchListData } from "../hooks/useFetchListData";
 
 export const Entrypoint = () => {
-  const [visibleCards, setVisibleCards] = useState<ListItem[]>([]);
-  const listQuery = useGetListData();
+  const { deletedCards, toggleCardExpansion } = useStore();
+  const { isLoading, refetch } = useGetListData();
+  const deleteCardMutation = useDeleteCard();
+  const [showDeleted, setShowDeleted] = useState(false);
 
-  // TOOD
-  // const deletedCards: DeletedListItem[] = [];
+  const { visibleCards } = useFetchListData();
 
   const handleDelete = (id: number) => {
-    console.log("Deleting card with id:", id);
+    deleteCardMutation.mutate(id);
   };
 
-  useEffect(() => {
-    if (listQuery.isLoading) {
-      return;
-    }
-
-    setVisibleCards(listQuery.data?.filter((item) => item.isVisible) ?? []);
-  }, [listQuery.data, listQuery.isLoading]);
-
-  if (listQuery.isLoading) {
+  if (isLoading) {
     return <Spinner />;
   }
 
   return (
     <div className="flex gap-x-16">
       <div className="w-full max-w-xl">
-        <h1 className="mb-1 font-medium text-lg">
-          My Awesome List ({visibleCards.length})
-        </h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="font-medium text-lg">
+            My Awesome List ({visibleCards?.length ?? 0})
+          </h1>
+          <ToggleButton onClick={() => refetch()}>Refresh</ToggleButton>
+        </div>
         <div className="flex flex-col gap-y-3">
-          {visibleCards.map((card) => (
+          {visibleCards?.map((card) => (
             <Card
               key={card.id}
               title={card.title}
               description={card.description}
               id={card.id}
-              onDelete={(id: number) => handleDelete(id)}
+              onDelete={handleDelete}
+              onToggleExpansion={toggleCardExpansion}
             />
           ))}
         </div>
       </div>
       <div className="w-full max-w-xl">
         <div className="flex items-center justify-between">
-          <h1 className="mb-1 font-medium text-lg">Deleted Cards (0)</h1>
-          <button
-            disabled
-            className="text-white text-sm transition-colors hover:bg-gray-800 disabled:bg-black/75 bg-black rounded px-3 py-1"
-          >
-            Reveal
-          </button>
+          <h1 className="font-medium text-lg">
+            Deleted Cards ({deletedCards.length})
+          </h1>
+          <ToggleButton onClick={() => setShowDeleted(!showDeleted)}>
+            {showDeleted ? "Hide" : "Reveal"}
+          </ToggleButton>
         </div>
-        <div className="flex flex-col gap-y-3">
-          {/* {deletedCards.map((card) => (
-            <Card key={card.id} card={card} />
-          ))} */}
-        </div>
+        {showDeleted && (
+          <div className="flex flex-col gap-y-3">
+            {deletedCards.map((card) => (
+              <Card
+                key={card.id}
+                title={card.title}
+                id={card.id}
+                isDeleted
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

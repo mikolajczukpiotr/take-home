@@ -1,5 +1,6 @@
 import { create } from "zustand";
 
+// Types
 type ListItem = {
   id: number;
   title: string;
@@ -8,44 +9,46 @@ type ListItem = {
 };
 
 type State = {
-  visibleCards: ListItem[];
+  deletedCards: ListItem[];
   expandedCardIds: number[];
-  isLoading: boolean;
 };
 
 type Actions = {
-  setVisibleCards: (cards: ListItem[]) => void;
-  setIsLoading: (isLoading: boolean) => void;
-  deleteCard: (id: number) => void;
+  deleteCard: (card: ListItem) => void;
   toggleCardExpansion: (id: number) => void;
 };
 
-const loadExpandedCardIds = (): number[] => {
-  const savedState = localStorage.getItem("expandedCardIds");
-  return savedState ? JSON.parse(savedState) : [];
+// Helpers for persistence
+const loadFromLocalStorage = <T>(key: string, fallback: T): T => {
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : fallback;
 };
 
-const saveExpandedCardIds = (state: number[]) => {
-  localStorage.setItem("expandedCardIds", JSON.stringify(state));
+const saveToLocalStorage = (key: string, data: unknown) => {
+  localStorage.setItem(key, JSON.stringify(data));
 };
 
+// Zustand Store
 export const useStore = create<State & Actions>((set) => ({
-  visibleCards: [],
-  expandedCardIds: loadExpandedCardIds(),
-  isLoading: false,
-  setVisibleCards: (cards) => set({ visibleCards: cards }),
-  setIsLoading: (isLoading) => set({ isLoading }),
-  deleteCard: (id) =>
-    set((state) => ({
-      visibleCards: state.visibleCards.filter((card) => card.id !== id),
-    })),
+  // Initial State
+  deletedCards: loadFromLocalStorage("deletedCards", []),
+  expandedCardIds: loadFromLocalStorage("expandedCardIds", []),
+
+  // Actions
+  deleteCard: (card: ListItem) =>
+    set((state) => {
+      const updatedDeletedCards = [...state.deletedCards, card];
+      saveToLocalStorage("deletedCards", updatedDeletedCards);
+      return { deletedCards: updatedDeletedCards };
+    }),
+
   toggleCardExpansion: (id) =>
     set((state) => {
-      const isExpanded = state.expandedCardIds.includes(id);
-      const updatedExpandedCardIds = isExpanded
+      const updatedExpandedIds = state.expandedCardIds.includes(id)
         ? state.expandedCardIds.filter((cardId) => cardId !== id)
         : [...state.expandedCardIds, id];
-      saveExpandedCardIds(updatedExpandedCardIds);
-      return { expandedCardIds: updatedExpandedCardIds };
+
+      saveToLocalStorage("expandedCardIds", updatedExpandedIds);
+      return { expandedCardIds: updatedExpandedIds };
     }),
 }));
