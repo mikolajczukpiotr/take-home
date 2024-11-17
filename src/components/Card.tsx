@@ -6,19 +6,31 @@ import { useStore } from "../store";
 
 type CardProps = {
   title: ListItem["title"];
-  description: ListItem["description"];
+  description?: ListItem["description"];
   id: ListItem["id"];
-  onDelete: (id: number) => void;
+  onDelete?: (id: number) => void;
+  onToggleExpansion?: (id: number) => void;
+  isDeleted?: boolean;
 };
 
-export const Card: FC<CardProps> = ({ title, description, id, onDelete }) => {
-  const { expandedCardIds, toggleCardExpansion } = useStore();
-  const isExpanded = expandedCardIds.includes(id);
+export const Card: FC<CardProps> = ({
+  title,
+  description,
+  id,
+  onDelete,
+  onToggleExpansion,
+  isDeleted = false,
+}) => {
   const contentRef = useRef<HTMLParagraphElement>(null);
+  const { expandedCardIds } = useStore();
+  const [isExpanded, setIsExpanded] = useState(
+    expandedCardIds.includes(id) || false
+  );
   const [maxHeight, setMaxHeight] = useState("0px");
 
   const handleExpandClick = () => {
-    toggleCardExpansion(id);
+    setIsExpanded((prev) => !prev);
+    onToggleExpansion?.(id);
   };
 
   useEffect(() => {
@@ -32,19 +44,23 @@ export const Card: FC<CardProps> = ({ title, description, id, onDelete }) => {
       <div className="flex justify-between mb-0.5">
         <h1 className="font-medium">{title}</h1>
         <div className="flex">
-          <ExpandButton onClick={handleExpandClick}>
-            {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
-          </ExpandButton>
-          <DeleteButton onClick={() => onDelete(id)} />
+          {!isDeleted && (
+            <ExpandButton onClick={handleExpandClick}>
+              {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+            </ExpandButton>
+          )}
+          <DeleteButton onClick={() => onDelete?.(id)} />
         </div>
       </div>
-      <p
-        ref={contentRef}
-        className="text-sm transition-max-height duration-300 ease-in-out overflow-hidden"
-        style={{ maxHeight }}
-      >
-        {description}
-      </p>
+      {!isDeleted && (
+        <p
+          ref={contentRef}
+          className="text-sm transition-max-height duration-300 ease-in-out overflow-hidden"
+          style={{ maxHeight }}
+        >
+          {description}
+        </p>
+      )}
     </div>
   );
 };
