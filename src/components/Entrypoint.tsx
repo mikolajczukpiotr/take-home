@@ -10,6 +10,10 @@ export const Entrypoint = () => {
   // TOOD
   // const deletedCards: DeletedListItem[] = [];
 
+  const handleDelete = (id: number) => {
+    console.log("Deleting card with id:", id);
+  };
+
   useEffect(() => {
     if (listQuery.isLoading) {
       return;
@@ -25,10 +29,18 @@ export const Entrypoint = () => {
   return (
     <div className="flex gap-x-16">
       <div className="w-full max-w-xl">
-        <h1 className="mb-1 font-medium text-lg">My Awesome List ({visibleCards.length})</h1>
+        <h1 className="mb-1 font-medium text-lg">
+          My Awesome List ({visibleCards.length})
+        </h1>
         <div className="flex flex-col gap-y-3">
           {visibleCards.map((card) => (
-            <Card key={card.id} title={card.title} description={card.description} />
+            <Card
+              key={card.id}
+              title={card.title}
+              description={card.description}
+              id={card.id}
+              onDelete={(id: number) => handleDelete(id)}
+            />
           ))}
         </div>
       </div>
