@@ -8,18 +8,18 @@ import { useFetchListData } from "../hooks/useFetchListData";
 
 export const Entrypoint = () => {
   const { deletedCards, toggleCardExpansion } = useStore();
-  const { isLoading, refetch } = useGetListData();
+  const { refetch } = useGetListData();
   const deleteCardMutation = useDeleteCard();
   const [showDeleted, setShowDeleted] = useState(false);
 
-  const { visibleCards } = useFetchListData();
+  const { visibleCards, isFetching, isError } = useFetchListData();
 
   const handleDelete = (id: number) => {
     deleteCardMutation.mutate(id);
   };
 
-  if (isLoading) {
-    return <Spinner />;
+  if (isError) {
+    return <div>Error fetching data</div>;
   }
 
   return (
@@ -32,16 +32,20 @@ export const Entrypoint = () => {
           <ToggleButton onClick={() => refetch()}>Refresh</ToggleButton>
         </div>
         <div className="flex flex-col gap-y-3">
-          {visibleCards?.map((card) => (
-            <Card
-              key={card.id}
-              title={card.title}
-              description={card.description}
-              id={card.id}
-              onDelete={handleDelete}
-              onToggleExpansion={toggleCardExpansion}
-            />
-          ))}
+          {isFetching ? (
+            <Spinner />
+          ) : (
+            visibleCards?.map((card) => (
+              <Card
+                key={card.id}
+                title={card.title}
+                description={card.description}
+                id={card.id}
+                onDelete={handleDelete}
+                onToggleExpansion={toggleCardExpansion}
+              />
+            ))
+          )}
         </div>
       </div>
       <div className="w-full max-w-xl">
@@ -56,12 +60,7 @@ export const Entrypoint = () => {
         {showDeleted && (
           <div className="flex flex-col gap-y-3">
             {deletedCards.map((card) => (
-              <Card
-                key={card.id}
-                title={card.title}
-                id={card.id}
-                isDeleted
-              />
+              <Card key={card.id} title={card.title} id={card.id} isDeleted />
             ))}
           </div>
         )}

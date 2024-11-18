@@ -2,7 +2,7 @@ import { useGetListData } from "../api/getListData";
 import { useStore } from "../store";
 
 export const useFetchListData = () => {
-  const { data: listQuery, isLoading } = useGetListData();
+  const { data: listQuery, isFetching, isError } = useGetListData();
   const { deletedCards } = useStore();
 
   // Directly derive visible cards from query data and exclude deleted cards
@@ -14,5 +14,5 @@ export const useFetchListData = () => {
       )
     : [];
 
-  return { visibleCards, isLoading };
+  return { visibleCards, isFetching, isError };
 };
