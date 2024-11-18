@@ -1,7 +1,7 @@
 import { FC, useRef, useEffect, useState } from "react";
-import { ListItem } from "../api/getListData";
+import { ListItem } from "../api/getList";
 import { DeleteButton, ExpandButton } from "./Buttons";
-import { ChevronUpIcon, ChevronDownIcon } from "./icons";
+import { ChevronUpIcon, ChevronDownIcon } from "./Icons";
 import { useStore } from "../store";
 
 type CardProps = {

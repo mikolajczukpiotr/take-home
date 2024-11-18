@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { useGetListData, useDeleteCard } from "../api/getListData";
 import { Card } from "./Card";
 import { Spinner } from "./Spinner";
 import { useStore } from "../store";
 import { ToggleButton } from "./ToggleButton";
-import { useFetchListData } from "../hooks/useFetchListData";
+import {
+  useDeleteCard,
+  useFetchListData,
+  useGetListData,
+} from "../hooks/useListData";
 
 export const Entrypoint = () => {
   const { deletedCards, toggleCardExpansion } = useStore();
